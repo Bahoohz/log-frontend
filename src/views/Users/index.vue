@@ -16,20 +16,25 @@
       @ok="handleOk"
     >
       <form ref="form" @submit.stop.prevent="handleSubmit">
-        <b-form-group
-          :state="nameState"
-          label="Name"
-          label-for="name-input"
-          invalid-feedback="Name is required"
-        >
+        <b-form-group label="Name" label-for="name">
           <b-form-input
             id="name-input"
-            v-model="name"
-            :state="nameState"
+            v-model="form.name"
             required
           ></b-form-input>
         </b-form-group>
+        <b-form-group label="Gender:" label-for="gender">
+          <b-form-select
+            id="gender"
+            v-model="form.gender"
+            :options="genderOptions"
+            required
+          ></b-form-select>
+        </b-form-group>
       </form>
+      <b-card class="mt-3" header="Form Data Result">
+        <pre class="m-0">{{ form }}</pre>
+      </b-card>
     </b-modal>
     <b-table striped hover :items="userList" :fields="fields">
       <template v-slot:cell(operation)="data">
@@ -45,6 +50,16 @@
 export default {
   data () {
     return {
+      form: {
+        id: -1,
+        name: '',
+        gender: null
+      },
+      genderOptions: [
+        { text: 'Select One', value: null },
+        { value: 'M', text: 'ผู้ชาย' },
+        { value: 'F', text: 'ผู้หญิง' }
+      ],
       userList: [
         { id: 1, name: 'Phatcharapol', gender: 'M' },
         { id: 2, name: 'Prasob', gender: 'M' }
@@ -75,11 +90,15 @@ export default {
     handleSubmit () {
       // check Validate
       // Do when pass validation
-      this.submittedNames.push(this.name)
+      this.addUser(this.form)
       // Hide the modal manually
       this.$nextTick(() => {
-        this.$bvModal.hide('modal-prevent-closing')
+        this.$bvModal.hide('modal-add-new-user')
       })
+    },
+    addUser (user) {
+      user.id = this.lastId++
+      this.userList.push(user)
     }
   }
 }
