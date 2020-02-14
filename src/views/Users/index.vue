@@ -11,14 +11,26 @@
       @ok="handleOk"
     >
       <form ref="form" @submit.stop.prevent="handleSubmit">
-        <b-form-group label="Name" label-for="name">
+        <b-form-group
+          label="Name"
+          label-for="name"
+          :invalid-feedback="invalidFeedbackName"
+          :valid-feedback="validFeedbackName"
+          :state="stateName"
+        >
           <b-form-input
             id="name-input"
             v-model="form.name"
             required
           ></b-form-input>
         </b-form-group>
-        <b-form-group label="Gender:" label-for="gender">
+        <b-form-group
+          label="Gender:"
+          label-for="gender"
+          :invalid-feedback="invalidFeedbackGender"
+          :valid-feedback="validFeedbackGender"
+          :state="stateGender"
+        >
           <b-form-select
             id="gender"
             v-model="form.gender"
@@ -112,8 +124,9 @@ export default {
     },
     handleSubmit () {
       // check Validate
-      // Do when pass validation
+      if (this.stateName === false || this.stateGender === false) return
       if (this.form.id > 0) {
+        // Do when pass validation
         this.updateUser(this.form)
       } else {
         this.addUser(this.form)
@@ -134,6 +147,36 @@ export default {
     deletUser (user) {
       const index = this.userList.findIndex(item => item.id === user.id)
       this.userList.splice(index, 1)
+    }
+  },
+  computed: {
+    stateName () {
+      return this.form.name.length >= 2
+    },
+    invalidFeedbackName () {
+      if (this.form.name.length > 2) {
+        return ''
+      } else if (this.form.name.length > 0) {
+        return 'ชื่อต้องมีขนาดอย่างน้อย 2 ตัวอักษร'
+      } else {
+        return 'ต้องใส่ชื่อ'
+      }
+    },
+    validFeedbackName () {
+      return this.stateGender === true ? 'สำเร็จ' : ''
+    },
+    stateGender () {
+      return this.form.gender != null
+    },
+    invalidFeedbackGender () {
+      if (this.form.gender != null) {
+        return ''
+      } else {
+        return 'กรุณาเลือกเพศ'
+      }
+    },
+    validFeedbackGender () {
+      return this.stateGender === true ? 'สำเร็จ' : ''
     }
   }
 }
