@@ -1,17 +1,12 @@
 <template>
   <div>
-    <b-button
-      variant="success"
-      class="float-right"
-      @click="addNewUser"
-      v-b-modal.modal-add-new-user
+    <b-button variant="success" class="float-right" @click="addNewUser"
       >Add New</b-button
     >
     <b-modal
-      id="modal-add-new-user"
-      ref="modalAddNewUser"
-      title="เพิ่มผู้ใช้ใหม่"
-      @show="resetModal"
+      id="modal-form-user"
+      ref="modal-form-user"
+      :title="title"
       @hidden="resetModal"
       @ok="handleOk"
     >
@@ -38,9 +33,9 @@
     </b-modal>
     <b-table striped hover :items="userList" :fields="fields">
       <template v-slot:cell(operation)="data">
-        <b-button @click="editUser(data)">Edit</b-button>
+        <b-button @click="editUser(data.item)">Edit</b-button>
         &nbsp;
-        <b-button variant="danger" @click="delUser(data)">Delete</b-button>
+        <b-button variant="danger" @click="delUser(data.item)">Delete</b-button>
       </template>
     </b-table>
   </div>
@@ -50,6 +45,7 @@
 export default {
   data () {
     return {
+      title: 'เพิ่มผู้ใช้ใหม่',
       form: {
         id: -1,
         name: '',
@@ -71,16 +67,43 @@ export default {
   methods: {
     addNewUser () {
       console.log('Add new user')
+      this.$bvModal.show('modal-form-user')
     },
     editUser (user) {
       console.log('Edit ')
       console.log(user)
+      this.title = 'แก้ไขผู้ใช้'
+      this.form = { ...user }
+      this.$bvModal.show('modal-form-user')
     },
     delUser (user) {
       console.log('Delete ')
       console.log(user)
+      this.$bvModal
+        .msgBoxConfirm('ท่านต้องการลบ ' + user.name + ' หรือไม่?', {
+          title: 'กรุณายืนยัน',
+          size: 'sm',
+          buttonSize: 'sm',
+          okVariant: 'danger',
+          okTitle: 'YES',
+          cancelTitle: 'NO',
+          footerClass: 'p-2',
+          hideHeaderClose: false,
+          centered: true
+        })
+        .then(value => {
+          if (value) {
+            this.deletUser(user)
+          }
+        })
     },
-    resetModal () {},
+    resetModal () {
+      this.form = {
+        id: -1,
+        name: '',
+        gender: null
+      }
+    },
     handleOk (bvModalEvt) {
       // Prevent modal from closing
       bvModalEvt.preventDefault()
@@ -90,15 +113,27 @@ export default {
     handleSubmit () {
       // check Validate
       // Do when pass validation
-      this.addUser(this.form)
+      if (this.form.id > 0) {
+        this.updateUser(this.form)
+      } else {
+        this.addUser(this.form)
+      }
       // Hide the modal manually
       this.$nextTick(() => {
-        this.$bvModal.hide('modal-add-new-user')
+        this.$bvModal.hide('modal-form-user')
       })
     },
     addUser (user) {
       user.id = this.lastId++
       this.userList.push(user)
+    },
+    updateUser (user) {
+      const index = this.userList.findIndex(item => item.id === user.id)
+      this.userList.splice(index, 1, user)
+    },
+    deletUser (user) {
+      const index = this.userList.findIndex(item => item.id === user.id)
+      this.userList.splice(index, 1)
     }
   }
 }
