@@ -1,8 +1,24 @@
 <template>
   <div>
-    <b-button variant="success" class="float-right" @click="addNewUser"
-      >Add New</b-button
+    <h3 class="float-left">ข้อมูลสถานประกอบการ</h3>
+    <b-navbar-nav class="float-right">
+      <b-nav-form>
+        <b-form-input
+          size="sm"
+          class="mr-sm-2"
+          placeholder="Search"
+        ></b-form-input>
+        <b-button size="sm" class="my-2 my-sm-0" type="submit">ค้นหา</b-button>
+      </b-nav-form>
+    </b-navbar-nav>
+    <b-button
+      size="sm"
+      variant="success"
+      class="float-right"
+      @click="addNewUser"
+      >เพิ่ม</b-button
     >
+    &nbsp;
     <b-modal
       id="modal-form-user"
       ref="modal-form-user"
@@ -12,9 +28,8 @@
     >
       <form ref="form" @submit.stop.prevent="handleSubmit">
         <b-form-group
-          label="Name"
+          label="ชื่อสถานประกอบการ :"
           label-for="name"
-          :invalid-feedback="invalidFeedbackName"
           :valid-feedback="validFeedbackName"
           :state="stateName"
         >
@@ -25,31 +40,76 @@
           ></b-form-input>
         </b-form-group>
         <b-form-group
-          label="Gender:"
-          label-for="gender"
-          :invalid-feedback="invalidFeedbackGender"
-          :valid-feedback="validFeedbackGender"
-          :state="stateGender"
+          label="ตำแหน่งที่สามารถสมัคร :"
+          label-for="position"
+          :valid-feedback="validFeedbackName"
+          :state="stateName"
         >
-          <b-form-select
-            id="gender"
-            v-model="form.gender"
-            :options="genderOptions"
+          <b-form-input
+            id="position-input"
+            v-model="form.position"
             required
-          ></b-form-select>
+          ></b-form-input>
+        </b-form-group>
+        <b-form-group
+          label="ประวัติโดยย่อ :"
+          label-for="history"
+          :valid-feedback="validFeedbackName"
+          :state="stateName"
+        >
+          <b-form-input
+            id="history-input"
+            v-model="form.history"
+            required
+          ></b-form-input>
+        </b-form-group>
+        <b-form-group
+          label="เงินเดือนที่ได้ :"
+          label-for="salary"
+          :valid-feedback="validFeedbackName"
+          :state="stateName"
+        >
+          <b-form-input
+            id="salary-input"
+            v-model="form.salary"
+            required
+          ></b-form-input>
+        </b-form-group>
+        <b-form-group
+          label="email :"
+          label-for="email"
+          :valid-feedback="validFeedbackName"
+          :state="stateName"
+        >
+          <b-form-input
+            id="email-input"
+            v-model="form.email"
+            required
+          ></b-form-input>
         </b-form-group>
       </form>
-      <b-card class="mt-3" header="Form Data Result">
+      <!-- <b-card class="mt-3" header="Form Data Result">
         <pre class="m-0">{{ form }}</pre>
-      </b-card>
+      </b-card> -->
     </b-modal>
     <b-table striped hover :items="userList" :fields="fields">
       <template v-slot:cell(operation)="data">
-        <b-button @click="editUser(data.item)">Edit</b-button>
+        <b-button size="sm" @click="editUser(data.item)">แก้ไข</b-button>
+
         &nbsp;
-        <b-button variant="danger" @click="delUser(data.item)">Delete</b-button>
+        <b-button size="sm" variant="danger" @click="delUser(data.item)"
+          >ลบ</b-button
+        >
       </template>
     </b-table>
+    <div class="overflow-auto">
+      <b-pagination
+        v-model="currentPage"
+        :total-rows="row"
+        :per-page="perPage"
+        aria-controls="my-table"
+      ></b-pagination>
+    </div>
   </div>
 </template>
 
@@ -57,23 +117,24 @@
 export default {
   data () {
     return {
-      title: 'เพิ่มผู้ใช้ใหม่',
+      perPage: 3,
+      currentPage: 1,
+      title: 'เพิ่มข้อมูลสถานประกอบการ',
       form: {
         id: -1,
         name: '',
-        gender: null
+        position: '',
+        history: '',
+        salary: '',
+        email: ''
       },
-      genderOptions: [
-        { text: 'Select One', value: null },
-        { value: 'M', text: 'ผู้ชาย' },
-        { value: 'F', text: 'ผู้หญิง' }
-      ],
+
       userList: [
-        { id: 1, name: 'Phatcharapol', gender: 'M' },
-        { id: 2, name: 'Prasob', gender: 'M' }
+        { id: 1, name: 'A-Host', position: 'Programmer', history: '', salary: '25000', email: '' },
+        { id: 2, name: 'AHEAD', position: 'Programmer', history: '', salary: '25000', email: '' }
       ],
       lastId: 3,
-      fields: ['id', 'name', 'gender', 'operation']
+      fields: ['id', 'name', 'operation']
     }
   },
   methods: {
@@ -113,7 +174,10 @@ export default {
       this.form = {
         id: -1,
         name: '',
-        gender: null
+        position: '',
+        history: '',
+        salary: '',
+        email: ''
       }
     },
     handleOk (bvModalEvt) {
@@ -124,7 +188,7 @@ export default {
     },
     handleSubmit () {
       // check Validate
-      if (this.stateName === false || this.stateGender === false) return
+      if (this.stateName === false) return
       if (this.form.id > 0) {
         // Do when pass validation
         this.updateUser(this.form)
@@ -162,21 +226,8 @@ export default {
         return 'ต้องใส่ชื่อ'
       }
     },
-    validFeedbackName () {
-      return this.stateGender === true ? 'สำเร็จ' : ''
-    },
-    stateGender () {
-      return this.form.gender != null
-    },
-    invalidFeedbackGender () {
-      if (this.form.gender != null) {
-        return ''
-      } else {
-        return 'กรุณาเลือกเพศ'
-      }
-    },
-    validFeedbackGender () {
-      return this.stateGender === true ? 'สำเร็จ' : ''
+    rows () {
+      return this.items.length
     }
   }
 }
